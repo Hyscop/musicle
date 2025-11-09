@@ -1,0 +1,74 @@
+{
+  "songs": [
+    {
+      "id": "1",
+      "title": "Şımarık",
+      "artist": "Tarkan",
+      "category": "all",
+      "soundcloudUrl": "https://soundcloud.com/tarkan/simarik"
+    },
+    {
+      "id": "2",
+      "title": "Kuzu Kuzu",
+      "artist": "Tarkan",
+      "category": "all",
+      "soundcloudUrl": "https://soundcloud.com/tarkan/kuzu-kuzu"
+    },
+    {
+      "id": "3",
+      "title": "Yalnızlık Paylaşılmaz",
+      "artist": "Duman",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/duman/yalnizlik-paylasilmaz"
+    },
+    {
+      "id": "4",
+      "title": "Senden Daha Güzel",
+      "artist": "Duman",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/duman/senden-daha-guzel"
+    },
+    {
+      "id": "5",
+      "title": "Rapstar",
+      "artist": "Ceza",
+      "category": "hiphop",
+      "soundcloudUrl": "https://soundcloud.com/ceza/rapstar"
+    },
+    {
+      "id": "6",
+      "title": "Suspus",
+      "artist": "Ceza",
+      "category": "hiphop",
+      "soundcloudUrl": "https://soundcloud.com/ceza/suspus"
+    },
+    {
+      "id": "7",
+      "title": "Gel",
+      "artist": "Barış Manço",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/baris-manco/gel"
+    },
+    {
+      "id": "8",
+      "title": "Eteği Belinde",
+      "artist": "Athena",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/athena/etegi-belinde"
+    },
+    {
+      "id": "9",
+      "title": "Felaket",
+      "artist": "Sagopa Kajmer",
+      "category": "hiphop",
+      "soundcloudUrl": "https://soundcloud.com/sagopa-kajmer/felaket"
+    },
+    {
+      "id": "10",
+      "title": "Şehristan",
+      "artist": "Ezhel",
+      "category": "hiphop",
+      "soundcloudUrl": "https://soundcloud.com/ezhel/sehristan"
+    }
+  ]
+}
