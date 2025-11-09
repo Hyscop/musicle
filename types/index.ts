@@ -26,6 +26,7 @@ export interface Guess {
   songTitle: string;
   phase: GamePhase;
   isCorrect: boolean;
+  isSkipped: boolean;
 }
 
 // Category type

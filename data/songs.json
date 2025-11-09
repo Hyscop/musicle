@@ -2,73 +2,80 @@
   "songs": [
     {
       "id": "1",
-      "title": "Şımarık",
-      "artist": "Tarkan",
+      "title": "İçimdeki Duman",
+      "artist": "İlyas Yalçıntaş",
       "category": "all",
-      "soundcloudUrl": "https://soundcloud.com/tarkan/simarik"
+      "soundcloudUrl": "https://soundcloud.com/ilyasyalcintas/ilyas-yalcintas-icimdeki-duman"
     },
     {
       "id": "2",
-      "title": "Kuzu Kuzu",
-      "artist": "Tarkan",
-      "category": "all",
-      "soundcloudUrl": "https://soundcloud.com/tarkan/kuzu-kuzu"
+      "title": "Bir Teselli Ver",
+      "artist": "Hayko Cepkin",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/hayko-cepkin-official/bir-teselli-ver"
     },
     {
       "id": "3",
       "title": "Yalnızlık Paylaşılmaz",
-      "artist": "Duman",
+      "artist": "Hayko Cepkin",
       "category": "rock",
-      "soundcloudUrl": "https://soundcloud.com/duman/yalnizlik-paylasilmaz"
+      "soundcloudUrl": "https://soundcloud.com/hayko-cepkin-official/yalnizlik-paylasilmaz"
     },
     {
       "id": "4",
-      "title": "Senden Daha Güzel",
-      "artist": "Duman",
+      "title": "Sandık",
+      "artist": "Hayko Cepkin",
       "category": "rock",
-      "soundcloudUrl": "https://soundcloud.com/duman/senden-daha-guzel"
+      "soundcloudUrl": "https://soundcloud.com/hayko-cepkin-official/sandik"
     },
     {
       "id": "5",
-      "title": "Rapstar",
-      "artist": "Ceza",
-      "category": "hiphop",
-      "soundcloudUrl": "https://soundcloud.com/ceza/rapstar"
+      "title": "Rüya",
+      "artist": "Adamlar",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/adamlar/ruya"
     },
     {
       "id": "6",
-      "title": "Suspus",
-      "artist": "Ceza",
-      "category": "hiphop",
-      "soundcloudUrl": "https://soundcloud.com/ceza/suspus"
+      "title": "Doğum Günün Kutlu Olsun",
+      "artist": "Adamlar",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/adamlar/dogum-gunun-kutlu-olsun"
     },
     {
       "id": "7",
-      "title": "Gel",
-      "artist": "Barış Manço",
+      "title": "Gül Kendini",
+      "artist": "Adamlar",
       "category": "rock",
-      "soundcloudUrl": "https://soundcloud.com/baris-manco/gel"
+      "soundcloudUrl": "https://soundcloud.com/adamlar/gul-kendini"
     },
     {
       "id": "8",
-      "title": "Eteği Belinde",
-      "artist": "Athena",
+      "title": "Ah Güzel İstanbul",
+      "artist": "Son Feci Bisiklet",
       "category": "rock",
-      "soundcloudUrl": "https://soundcloud.com/athena/etegi-belinde"
+      "soundcloudUrl": "https://soundcloud.com/sonfecibisiklet/ah-guzel-istanbul"
     },
     {
       "id": "9",
-      "title": "Felaket",
-      "artist": "Sagopa Kajmer",
-      "category": "hiphop",
-      "soundcloudUrl": "https://soundcloud.com/sagopa-kajmer/felaket"
+      "title": "Kargalar",
+      "artist": "Son Feci Bisiklet",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/sonfecibisiklet/kargalar"
     },
     {
       "id": "10",
-      "title": "Şehristan",
-      "artist": "Ezhel",
+      "title": "İstanbulum",
+      "artist": "Son Feci Bisiklet",
+      "category": "rock",
+      "soundcloudUrl": "https://soundcloud.com/sonfecibisiklet/istanbulum"
+    },
+    {
+      "id": "11",
+      "title": "İçimdeki Duman",
+      "artist": "İlyas Yalçıntaş",
       "category": "hiphop",
-      "soundcloudUrl": "https://soundcloud.com/ezhel/sehristan"
+      "soundcloudUrl": "https://soundcloud.com/ilyasyalcintas/ilyas-yalcintas-icimdeki-duman"
     }
   ]
 }
