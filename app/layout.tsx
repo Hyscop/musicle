@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://musicle.vercel.app"),
+  metadataBase: new URL("https://muzikle.vercel.app"),
   alternates: {
     canonical: "/",
   },
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: "Müzikle - Günlük Müzik Tahmin Oyunu",
     description:
       "Her gün yeni bir şarkı tahmin edin! Rock, Hip Hop ve daha fazla kategoride eğlenceli müzik bulmacası.",
-    url: "https://musicle.vercel.app",
+    url: "https://muzikle.vercel.app",
     siteName: "Müzikle",
     locale: "tr_TR",
     type: "website",
@@ -109,7 +109,7 @@ export default function RootLayout({
     name: "Müzikle",
     description:
       "Günlük müzik tahmin oyunu. Her gün yeni bir şarkı tahmin edin!",
-    url: "https://musicle.vercel.app",
+    url: "https://muzikle.vercel.app",
     applicationCategory: "Game",
     genre: "Music Game",
     operatingSystem: "Any",
