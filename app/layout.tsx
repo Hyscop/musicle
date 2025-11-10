@@ -86,8 +86,7 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   verification: {
-    // Google Search Console doğrulama kodu buraya eklenecek
-    // google: "your-google-verification-code",
+    google: "S1_ZSajtAo6L9fQL-I2C2IO_r0uKwWDO9yaJrX9yHBw",
   },
 };
 
