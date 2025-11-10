@@ -44,6 +44,7 @@ export default function Home() {
     title: string;
     artist: string;
   } | null>(null);
+  const [categoryKey, setCategoryKey] = useState(0);
 
   useEffect(() => {
     startNewGame("all");
@@ -125,6 +126,8 @@ export default function Home() {
     resetForNewPhase();
 
     changeCategory(category);
+
+    setTimeout(() => setCategoryKey((prev) => prev + 1), 0);
   };
 
   return (
@@ -165,6 +168,7 @@ export default function Home() {
           />
 
           <GuessInput
+            key={categoryKey}
             onGuess={handleGuess}
             onSkip={handleSkip}
             disabled={gameState.isGameOver || isPlaying}

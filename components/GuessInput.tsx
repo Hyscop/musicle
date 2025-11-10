@@ -21,6 +21,16 @@ export default function GuessInput({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      inputRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (query.length < 2) {
       const timer = setTimeout(() => {
         setResults([]);
