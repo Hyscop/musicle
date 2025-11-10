@@ -44,10 +44,10 @@ export default function ProgressBar({
           transform: "translateX(-50%)",
         }}
       >
-        <span className="text-[10px] sm:text-xs text-purple-300 font-semibold mb-0 bg-gray-900/95 px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full border border-purple-500/40 shadow-lg whitespace-nowrap">
+        <span className="text-[10px] sm:text-xs text-purple-200 font-bold mb-0 bg-gray-800/98 px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full border-2 border-purple-500/60 shadow-xl shadow-purple-500/30 whitespace-nowrap">
           {formatDuration(currentPhaseDuration)}
         </span>
-        <div className="text-purple-400 text-sm sm:text-base leading-none">
+        <div className="text-purple-400 text-sm sm:text-base leading-none drop-shadow-lg">
           ▼
         </div>
       </div>
@@ -98,17 +98,17 @@ export default function ProgressBar({
               <div
                 key={index}
                 style={{ width: `${widthPercentage}%` }}
-                className={`relative h-full bg-gray-900/50 overflow-hidden backdrop-blur-sm border border-gray-800/50 shadow-lg ${roundedClass}`}
+                className={`relative h-full bg-gray-800/70 overflow-hidden backdrop-blur-sm border-2 border-gray-700/80 shadow-xl ${roundedClass}`}
               >
                 <div
                   style={{
                     width: `${segmentFillPercentage}%`,
                     background: `linear-gradient(to right, 
-                      hsl(${startHue}, 70%, 60%), 
-                      hsl(${endHue}, 70%, 60%)
+                      hsl(${startHue}, 75%, 65%), 
+                      hsl(${endHue}, 75%, 65%)
                     )`,
                   }}
-                  className="absolute inset-y-0 left-0"
+                  className="absolute inset-y-0 left-0 shadow-lg"
                 />
               </div>
             );

@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { GameState, Category, GamePhase, Guess } from "@/types";
+import {
+  checkAndClearOldData,
+  saveDailyGameState,
+  loadDailyGameState,
+} from "@/lib/dailyStorage";
 
 const initialState: GameState = {
   gameId: null,
@@ -18,12 +23,54 @@ const initialState: GameState = {
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(initialState);
 
-  const startNewGame = useCallback(async (category: Category) => {
-    try {
-      const response = await fetch(`/api/game/new?category=${category}`);
-      const data = await response.json();
+  // Check for new day on mount
+  useEffect(() => {
+    checkAndClearOldData();
+  }, []);
 
-      setGameState((prev) => {
+  // Save current state to localStorage whenever it changes (with daily seed)
+  const saveGameState = useCallback((state: GameState) => {
+    if (typeof window !== "undefined" && state.selectedCategory) {
+      const stateToSave = {
+        gameId: state.gameId,
+        currentPhase: state.currentPhase,
+        guesses: state.guesses,
+        isGameOver: state.isGameOver,
+        hasWon: state.hasWon,
+        youtubeId: state.youtubeId,
+        hasSeenModal: state.hasSeenModal,
+        revealedSong: state.revealedSong,
+      };
+      saveDailyGameState(state.selectedCategory, stateToSave);
+    }
+  }, []);
+
+
+  const loadGameState = useCallback(
+    (category: Category): GameState | null => {
+      if (typeof window !== "undefined") {
+        const saved = loadDailyGameState(category);
+        if (saved) {
+          return {
+            ...saved,
+            isPlaying: false,
+            selectedCategory: category,
+            completedCategories: gameState.completedCategories,
+          } as GameState;
+        }
+      }
+      return null;
+    },
+    [gameState.completedCategories]
+  );
+
+  const startNewGame = useCallback(
+    async (category: Category) => {
+      try {
+        const response = await fetch(`/api/game/new?category=${category}`);
+        const data = await response.json();
+
+      
         const newState: GameState = {
           gameId: data.gameId,
           currentPhase: 0 as GamePhase,
@@ -33,17 +80,36 @@ export function useGameState() {
           hasWon: false,
           selectedCategory: category,
           youtubeId: data.youtubeId,
-          completedCategories: prev.completedCategories,
+          completedCategories: gameState.completedCategories,
+          hasSeenModal: false, 
         };
-        return newState;
-      });
 
-      return data;
-    } catch (error) {
-      console.error("Failed to start new game:", error);
-      throw error;
-    }
-  }, []);
+       
+        if (typeof window !== "undefined") {
+          const stateToSave = {
+            gameId: newState.gameId,
+            currentPhase: newState.currentPhase,
+            guesses: newState.guesses,
+            isGameOver: newState.isGameOver,
+            hasWon: newState.hasWon,
+            youtubeId: newState.youtubeId,
+            hasSeenModal: newState.hasSeenModal,
+            revealedSong: newState.revealedSong,
+          };
+          saveDailyGameState(category, stateToSave);
+        }
+
+       
+        setGameState(newState);
+
+        return data;
+      } catch (error) {
+        console.error("Failed to start new game:", error);
+        throw error;
+      }
+    },
+    [gameState.completedCategories]
+  );
 
   const submitGuess = useCallback(
     async (guess: string, artist?: string) => {
@@ -79,6 +145,7 @@ export function useGameState() {
             isGameOver: data.gameOver,
             hasWon: data.correct,
           };
+          saveGameState(newState);
           return newState;
         });
 
@@ -88,7 +155,7 @@ export function useGameState() {
         throw error;
       }
     },
-    [gameState]
+    [gameState, saveGameState]
   );
 
   const skipPhase = useCallback(() => {
@@ -113,9 +180,10 @@ export function useGameState() {
         isPlaying: false,
       };
 
+      saveGameState(newState);
       return newState;
     });
-  }, []);
+  }, [saveGameState]);
 
   const advancePhase = useCallback(() => {
     setGameState((prev) => {
@@ -129,9 +197,10 @@ export function useGameState() {
         isGameOver,
       };
 
+      saveGameState(newState);
       return newState;
     });
-  }, []);
+  }, [saveGameState]);
 
   const setPlaying = useCallback((playing: boolean) => {
     setGameState((prev) => ({ ...prev, isPlaying: playing }));
@@ -139,14 +208,84 @@ export function useGameState() {
 
   const changeCategory = useCallback(
     async (category: Category) => {
-      return await startNewGame(category);
+     
+      const savedState = loadGameState(category);
+
+      if (savedState && savedState.gameId) {
+       
+        setGameState(savedState);
+        return { gameId: savedState.gameId, youtubeId: savedState.youtubeId };
+      } else {
+        
+        return await startNewGame(category);
+      }
     },
-    [startNewGame]
+    [startNewGame, loadGameState]
   );
 
   const resetGame = useCallback(() => {
     setGameState(initialState);
+    
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("musicle_state_all");
+      localStorage.removeItem("musicle_state_rock");
+      localStorage.removeItem("musicle_state_hiphop");
+    }
   }, []);
+
+  const clearAllData = useCallback(() => {
+    
+    if (typeof window !== "undefined") {
+     
+      const keys = Object.keys(localStorage);
+      keys.forEach((key) => {
+        if (key.startsWith("musicle_")) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+    setGameState(initialState);
+  
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
+  }, []);
+
+  const markModalAsSeen = useCallback(() => {
+    setGameState((prev) => {
+      const newState = {
+        ...prev,
+        hasSeenModal: true,
+      };
+      saveGameState(newState);
+      return newState;
+    });
+  }, [saveGameState]);
+
+  const reopenModal = useCallback(() => {
+    setGameState((prev) => {
+      const newState = {
+        ...prev,
+        hasSeenModal: false,
+      };
+      saveGameState(newState);
+      return newState;
+    });
+  }, [saveGameState]);
+
+  const setRevealedSongData = useCallback(
+    (songData: { title: string; artist: string } | null) => {
+      setGameState((prev) => {
+        const newState = {
+          ...prev,
+          revealedSong: songData,
+        };
+        saveGameState(newState);
+        return newState;
+      });
+    },
+    [saveGameState]
+  );
 
   return {
     gameState,
@@ -157,5 +296,9 @@ export function useGameState() {
     setPlaying,
     changeCategory,
     resetGame,
+    markModalAsSeen,
+    reopenModal,
+    setRevealedSongData,
+    clearAllData,
   };
 }

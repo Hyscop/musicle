@@ -21,6 +21,8 @@ export interface GameState {
   selectedCategory: Category;
   youtubeId: string | null;
   completedCategories: Category[];
+  hasSeenModal?: boolean; 
+  revealedSong?: { title: string; artist: string } | null;
 }
 
 export interface Guess {

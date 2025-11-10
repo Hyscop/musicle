@@ -42,7 +42,7 @@ export async function fetchPlaylistSongs(category: Category): Promise<Song[]> {
     songsCacheByCategory[category] &&
     Date.now() - cacheTimestamps[category] < CACHE_DURATION
   ) {
-    console.log(`🚀 Using cached songs for category: ${category}`);
+    console.log(`Using cached songs for category: ${category}`);
     return songsCacheByCategory[category]!;
   }
 
@@ -109,7 +109,7 @@ export async function fetchPlaylistSongs(category: Category): Promise<Song[]> {
     // Cache songs for this category
     songsCacheByCategory[category] = songs;
     cacheTimestamps[category] = Date.now();
-    console.log(`✅ Cached ${songs.length} songs for category: ${category}`);
+    console.log(`Cached ${songs.length} songs for category: ${category}`);
 
     return songs;
   } catch (error) {

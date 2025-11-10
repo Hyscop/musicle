@@ -14,6 +14,7 @@ interface ResultModalProps {
   onNext: () => void;
   onClose: () => void;
   modalIframeRef: React.RefObject<HTMLIFrameElement | null>;
+  shouldAutoPlay?: boolean; // Auto-play only on first view
 }
 
 const CATEGORY_SEQUENCE: Category[] = ["all", "rock", "hiphop"];
@@ -29,13 +30,15 @@ export default function ResultModal({
   onNext,
   onClose,
   modalIframeRef,
+  shouldAutoPlay = false,
 }: ResultModalProps) {
   useEffect(() => {
-    // Load YouTube video when modal first appears
-    if (modalIframeRef.current && youtubeId && !modalIframeRef.current.src) {
-      modalIframeRef.current.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1`;
+    // Load or reload YouTube video when modal opens
+    if (isOpen && modalIframeRef.current && youtubeId) {
+      const autoplayParam = shouldAutoPlay ? "autoplay=1" : "autoplay=0";
+      modalIframeRef.current.src = `https://www.youtube.com/embed/${youtubeId}?${autoplayParam}`;
     }
-  }, [youtubeId, modalIframeRef]);
+  }, [isOpen, youtubeId, modalIframeRef, shouldAutoPlay]);
 
   useEffect(() => {
     if (isOpen) {
@@ -97,7 +100,7 @@ export default function ResultModal({
           </div>
 
           <button
-            onClick={onNext}
+            onClick={isLastCategory ? onClose : onNext}
             className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-purple-500/30 hover:scale-105"
           >
             {isLastCategory ? "Tamamla" : "Sonraki"}

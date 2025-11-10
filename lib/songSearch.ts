@@ -33,7 +33,7 @@ export async function initializeSongDatabase() {
   }
 
   try {
-    console.log("🔍 Initializing song database with all categories...");
+    console.log("Initializing song database with all categories...");
 
     // Fetch all categories in parallel
     const [allSongs, rockSongs, hiphopSongs] = await Promise.all([

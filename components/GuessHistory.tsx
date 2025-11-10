@@ -24,11 +24,11 @@ export default function GuessHistory({ guesses }: GuessHistoryProps) {
             ${
               guess
                 ? guess.isSkipped
-                  ? "bg-gray-800/60 text-gray-400 border border-gray-700/50 shadow-lg"
+                  ? "bg-gray-800/80 text-gray-300 border-2 border-gray-700/80 shadow-lg"
                   : guess.isCorrect
-                  ? "bg-gradient-to-r from-green-600/80 to-emerald-600/80 text-white border border-green-500/30 shadow-lg shadow-green-500/20"
-                  : "bg-gradient-to-r from-red-600/80 to-rose-600/80 text-white border border-red-500/30 shadow-lg shadow-red-500/20"
-                : "bg-gray-900/40 text-gray-600 border border-gray-800/50"
+                  ? "bg-gradient-to-r from-green-600/90 to-emerald-600/90 text-white border-2 border-green-500/50 shadow-lg shadow-green-500/30"
+                  : "bg-gradient-to-r from-red-600/90 to-rose-600/90 text-white border-2 border-red-500/50 shadow-lg shadow-red-500/30"
+                : "bg-gray-800/60 text-gray-500 border-2 border-gray-700/70"
             }
           `}
         >

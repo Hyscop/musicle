@@ -42,7 +42,7 @@ export function useAudioPlayer(youtubeId: string | null) {
   useEffect(() => {
     if (!youtubeId || typeof window === "undefined") return;
 
-    // Reset all state when youtubeId changes (async to avoid cascading renders)
+
     const resetTimer = setTimeout(() => {
       setIsPlaying(false);
       setProgress(0);
@@ -82,7 +82,17 @@ export function useAudioPlayer(youtubeId: string | null) {
           showinfo: 0,
         },
         events: {
-          onReady: () => {},
+          onReady: (event: any) => {
+           
+            const player = event.target;
+            player.mute();
+            player.playVideo();
+            setTimeout(() => {
+              player.pauseVideo();
+              player.seekTo(0);
+              player.unMute();
+            }, 500); 
+          },
           onStateChange: (event: any) => {
             if (event.data === 1) setIsPlaying(true);
             else if (event.data === 2) setIsPlaying(false);
@@ -170,8 +180,7 @@ export function useAudioPlayer(youtubeId: string | null) {
       setTotalPlayDuration(playDuration);
       pausedPositionRef.current = 0;
 
-      // Add 3 seconds offset to YouTube playback position only
-      player.seekTo(startPosition + 3, true);
+      player.seekTo(startPosition + 1, true);
       player.playVideo();
       setIsPlaying(true);
       setProgress(0);
@@ -230,7 +239,7 @@ export function useAudioPlayer(youtubeId: string | null) {
     const player = playerRef.current;
     if (timerRef.current) clearTimeout(timerRef.current);
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    player.seekTo(3, true); // Start from 3 seconds
+    player.seekTo(1, true); // Start from 3 seconds
     player.playVideo();
     setIsPlaying(true);
   }, []);

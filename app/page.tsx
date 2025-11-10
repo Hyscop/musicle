@@ -20,11 +20,14 @@ const montserrat = Montserrat({
 export default function Home() {
   const {
     gameState,
-    startNewGame,
     submitGuess,
     skipPhase,
     advancePhase,
     changeCategory,
+    markModalAsSeen,
+    reopenModal,
+    setRevealedSongData,
+    clearAllData,
   } = useGameState();
 
   const {
@@ -39,34 +42,29 @@ export default function Home() {
   } = useAudioPlayer(gameState.youtubeId);
 
   const modalIframeRef = useRef<HTMLIFrameElement>(null);
-  const [modalDismissed, setModalDismissed] = useState(false);
-  const [revealedSong, setRevealedSong] = useState<{
-    title: string;
-    artist: string;
-  } | null>(null);
   const [categoryKey, setCategoryKey] = useState(0);
 
+  // Expose clearMusicleData for production debugging/testing
   useEffect(() => {
-    startNewGame("all");
+    if (typeof window !== "undefined") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).clearMusicleData = clearAllData;
+    }
+  }, [clearAllData]);
 
-    setTimeout(() => {
-      fetch("/api/game/new?category=rock");
-    }, 2000);
-
-    setTimeout(() => {
-      fetch("/api/game/new?category=hiphop");
-    }, 4000);
-  }, [startNewGame]);
+  useEffect(() => {
+    changeCategory("all");
+  }, [changeCategory]);
 
   useEffect(() => {
     if (gameState.isGameOver && gameState.gameId) {
       fetch(`/api/game/reveal?gameId=${gameState.gameId}`)
         .then((res) => res.json())
         .then((data) => {
-          setRevealedSong({ title: data.title, artist: data.artist });
+          setRevealedSongData({ title: data.title, artist: data.artist });
         });
     }
-  }, [gameState.isGameOver, gameState.gameId]);
+  }, [gameState.isGameOver, gameState.gameId, setRevealedSongData]);
 
   const handlePlay = () => {
     if (isPlaying) {
@@ -92,36 +90,31 @@ export default function Home() {
   };
 
   const handleNextCategory = () => {
-    setRevealedSong(null);
-    setModalDismissed(false);
+    markModalAsSeen();
     stopPlaying();
 
-    // Get next category in sequence
     const CATEGORY_SEQUENCE: Category[] = ["all", "rock", "hiphop"];
     const currentIndex = CATEGORY_SEQUENCE.indexOf(gameState.selectedCategory);
     const nextCategory =
       currentIndex < CATEGORY_SEQUENCE.length - 1
         ? CATEGORY_SEQUENCE[currentIndex + 1]
-        : CATEGORY_SEQUENCE[0]; // Loop back to start
+        : CATEGORY_SEQUENCE[0];
 
-    startNewGame(nextCategory).then((data) => {
+    changeCategory(nextCategory).then((data) => {
       if (data._debug) {
       }
     });
   };
 
   const handleCloseModal = () => {
-    setModalDismissed(true);
+    markModalAsSeen();
   };
 
   const handleOpenStats = () => {
-    setModalDismissed(false);
+    reopenModal();
   };
 
   const handleCategoryChange = (category: Category) => {
-    setRevealedSong(null);
-    setModalDismissed(false);
-
     stopPlaying();
     resetForNewPhase();
 
@@ -176,18 +169,19 @@ export default function Home() {
         </div>
 
         {/* Modal always rendered but controlled by z-index and opacity */}
-        {revealedSong && gameState.isGameOver && (
+        {gameState.revealedSong && gameState.isGameOver && (
           <ResultModal
-            isOpen={!modalDismissed}
+            isOpen={!gameState.hasSeenModal}
             hasWon={gameState.hasWon}
-            songTitle={revealedSong.title}
-            artist={revealedSong.artist}
+            songTitle={gameState.revealedSong.title}
+            artist={gameState.revealedSong.artist}
             youtubeId={gameState.youtubeId || ""}
             attempts={gameState.guesses.length}
             currentCategory={gameState.selectedCategory}
             onNext={handleNextCategory}
             onClose={handleCloseModal}
             modalIframeRef={modalIframeRef}
+            shouldAutoPlay={!gameState.hasSeenModal}
           />
         )}
 

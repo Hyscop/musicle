@@ -1,18 +1,26 @@
-# Musicle
+# Müzikle - Günlük Müzik Tahmin Oyunu
 
-Turkish song guessing game inspired.
+Wordle tarzı günlük müzik tahmin oyunu. Her gün farklı şarkılar
 
-## Game Rules
+## Oyun Kuralları
 
-- Listen to progressively longer snippets of a song
-- 6 attempts: 0.1s → 0.5s → 2s → 4s → 8s → 15s
-- Guess the song.
-- Three categories: Tümü (All), Rock, Hip Hop
+- Her gün 3 kategori: **Tümü**, **Rock**, **Hip-hop**
+- Şarkıyı en kısa sürede 6 denemede tahmin et: 0.1s → 0.5s → 2s → 4s → 8s → 15s
+- Fuzzy search ile yazım hatalarına toleranslı
+- Günde sadece 1 kere oynanabilir
 
-## Tech Stack
+## Özellikler
+
+- **Günlük Challenge**: Seed-based şarkı seçimi (Mulberry32)
+- **3 Kategori**: Tümü (66 şarkı), Rock (51 şarkı), Hip-hop (62 şarkı)
+- **LocalStorage**: Progress otomatik kaydediliyor
+- **Otomatik Gün Değişimi**: Gece yarısında sıfırlanıyor
+
+## Teknolojiler
 
 - Next.js 16 (App Router)
 - React 19
 - TypeScript
 - Tailwind CSS 4
-- SoundCloud Widget API
+- YouTube Data API v3
+- Seeded Random (Mulberry32 algoritması)

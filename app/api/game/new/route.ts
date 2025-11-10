@@ -1,11 +1,13 @@
 /**
  * API endpoint to start a new game
+ * Uses daily seeded random selection so everyone gets same songs per day
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPlaylistSongs } from "@/lib/youtube";
 import { setSession } from "@/lib/sessionStore";
 import { generateGameId, normalizeString } from "@/lib/utils";
+import { getTodaySeed, seededShuffle } from "@/lib/seededRandom";
 import { Category, NewGameResponse } from "@/types";
 
 export async function GET(request: NextRequest) {
@@ -27,18 +29,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Pick a random song
-    const song = songs[Math.floor(Math.random() * songs.length)];
+    // Use today's date as seed to get same songs for everyone today
+    const todaySeed = getTodaySeed();
+
+    // Create a category-specific seed (so each category has different songs)
+    const categorySeed =
+      todaySeed + (category === "all" ? 0 : category === "rock" ? 1000 : 2000);
+
+    // Shuffle songs with seeded random - same order for everyone today
+    const shuffledSongs = seededShuffle(songs, categorySeed);
+
+    // Pick the first song (which will be same for everyone today)
+    const song = shuffledSongs[0];
 
     const gameId = generateGameId();
-
-    // DEBUG: Log what we're storing
-    console.log("🐛 DEBUG - New game created:");
-    console.log("  Game ID:", gameId);
-    console.log("  Song title:", song.title);
-    console.log("  Artist:", song.artist);
-    console.log("  Normalized answer:", normalizeString(song.title));
-    console.log("  YouTube ID:", song.youtubeId);
 
     setSession(gameId, {
       answer: normalizeString(song.title),
@@ -55,18 +59,7 @@ export async function GET(request: NextRequest) {
       category,
     };
 
-    // DEBUG: Add song info to response for debugging
-    console.log("🐛 DEBUG - Sending response with song info");
-    const debugResponse = {
-      ...response,
-      _debug: {
-        title: song.title,
-        artist: song.artist,
-        normalizedAnswer: normalizeString(song.title),
-      },
-    };
-
-    return NextResponse.json(debugResponse);
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error creating new game:", error);
     return NextResponse.json(

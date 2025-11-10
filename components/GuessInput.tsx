@@ -26,7 +26,7 @@ export default function GuessInput({
         behavior: "smooth",
         block: "nearest",
       });
-    }, 800);
+    }, 100);
     return () => clearTimeout(timer);
   }, []);
 
@@ -49,7 +49,7 @@ export default function GuessInput({
           const data = await response.json();
           setResults(data.songs || []);
         }
-      } catch (error) {
+      } catch {
         setResults([]);
       } finally {
         setIsLoading(false);
@@ -92,18 +92,18 @@ export default function GuessInput({
             onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
             placeholder="Şarkı ara..."
             disabled={disabled}
-            className="w-full px-5 py-3.5 bg-gray-900/40 text-white rounded-xl 
-                     border border-gray-800/50 focus:border-purple-500/50 
-                     focus:outline-none text-base placeholder-gray-500
-                     disabled:opacity-50
-                     backdrop-blur-sm transition-all duration-300"
+            className="w-full px-5 py-3.5 bg-gray-800/80 text-white rounded-xl 
+                     border-2 border-gray-700/80 focus:border-purple-500/80 
+                     focus:outline-none text-base placeholder-gray-400
+                     disabled:opacity-50 focus:bg-gray-800/90
+                     backdrop-blur-sm transition-all duration-300 shadow-lg"
           />
 
           {showDropdown && query.length >= 2 && !disabled && (
             <div
-              className="absolute bottom-full left-0 right-0 mb-2 bg-gray-900/95 
-                          rounded-xl border border-gray-800/50 max-h-80 overflow-y-auto z-[100]
-                          backdrop-blur-lg shadow-2xl"
+              className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800/98 
+                          rounded-xl border-2 border-gray-700/80 max-h-80 overflow-y-auto z-[100]
+                          backdrop-blur-lg shadow-2xl shadow-black/50"
             >
               {isLoading ? (
                 <div className="px-5 py-8 text-center">
@@ -137,10 +137,10 @@ export default function GuessInput({
         <button
           onClick={handleSkip}
           disabled={disabled}
-          className="px-8 py-3.5 bg-gray-900/60 text-gray-300 rounded-xl font-medium
-                   hover:bg-gray-800/80 hover:text-white transition-all duration-300
+          className="px-8 py-3.5 bg-gray-800/80 text-gray-200 rounded-xl font-medium
+                   hover:bg-gray-700/90 hover:text-white transition-all duration-300
                    disabled:opacity-50 
-                   backdrop-blur-sm border border-gray-800/50"
+                   backdrop-blur-sm border-2 border-gray-700/80 shadow-lg"
         >
           Atla
         </button>
