@@ -1,10 +1,9 @@
 /**
- * API endpoint to reveal the answer after game ends
+ * DEBUG API endpoint to get current game info
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/sessionStore";
-import { RevealResponse } from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,24 +18,21 @@ export async function GET(request: NextRequest) {
 
     if (!session) {
       return NextResponse.json(
-        { error: "Game not found pr expired" },
+        { error: "Game not found or expired" },
         { status: 404 }
       );
     }
 
-    const response: RevealResponse = {
+    return NextResponse.json({
       title: session.songData.title,
       artist: session.songData.artist,
+      answer: session.answer,
       youtubeId: session.songData.youtubeId,
-      guesses: session.guesses,
-      phase: session.phase,
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
-    console.error("Error revealing answer:", error);
+    console.error("Error fetching debug info:", error);
     return NextResponse.json(
-      { error: "Failed to reveal answer" },
+      { error: "Failed to fetch debug info" },
       { status: 500 }
     );
   }

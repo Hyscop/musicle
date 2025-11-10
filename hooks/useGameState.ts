@@ -11,7 +11,8 @@ const initialState: GameState = {
   isGameOver: false,
   hasWon: false,
   selectedCategory: "all",
-  soundcloudUrl: null,
+  youtubeId: null,
+  completedCategories: [],
 };
 
 export function useGameState() {
@@ -22,15 +23,19 @@ export function useGameState() {
       const response = await fetch(`/api/game/new?category=${category}`);
       const data = await response.json();
 
-      setGameState({
-        gameId: data.gameId,
-        currentPhase: 0,
-        guesses: [],
-        isPlaying: false,
-        isGameOver: false,
-        hasWon: false,
-        selectedCategory: category,
-        soundcloudUrl: data.soundcloudUrl,
+      setGameState((prev) => {
+        const newState: GameState = {
+          gameId: data.gameId,
+          currentPhase: 0 as GamePhase,
+          guesses: [],
+          isPlaying: false,
+          isGameOver: false,
+          hasWon: false,
+          selectedCategory: category,
+          youtubeId: data.youtubeId,
+          completedCategories: prev.completedCategories,
+        };
+        return newState;
       });
 
       return data;
@@ -41,8 +46,10 @@ export function useGameState() {
   }, []);
 
   const submitGuess = useCallback(
-    async (guess: string) => {
-      if (!gameState.gameId) return;
+    async (guess: string, artist?: string) => {
+      if (!gameState.gameId) {
+        return;
+      }
 
       try {
         const response = await fetch("/api/game/guess", {
@@ -59,17 +66,21 @@ export function useGameState() {
 
         const newGuess: Guess = {
           songTitle: guess,
+          artist: artist,
           phase: gameState.currentPhase,
           isCorrect: data.correct,
           isSkipped: false,
         };
 
-        setGameState((prev) => ({
-          ...prev,
-          guesses: [...prev.guesses, newGuess],
-          isGameOver: data.gameOver,
-          hasWon: data.correct,
-        }));
+        setGameState((prev) => {
+          const newState = {
+            ...prev,
+            guesses: [...prev.guesses, newGuess],
+            isGameOver: data.gameOver,
+            hasWon: data.correct,
+          };
+          return newState;
+        });
 
         return data;
       } catch (error) {
@@ -77,7 +88,7 @@ export function useGameState() {
         throw error;
       }
     },
-    [gameState.gameId, gameState.currentPhase]
+    [gameState]
   );
 
   const skipPhase = useCallback(() => {
@@ -94,13 +105,15 @@ export function useGameState() {
 
       const isGameOver = newGuesses.length >= 6;
 
-      return {
+      const newState = {
         ...prev,
         guesses: newGuesses,
         currentPhase: nextPhase,
         isGameOver,
         isPlaying: false,
       };
+
+      return newState;
     });
   }, []);
 
@@ -109,11 +122,14 @@ export function useGameState() {
       const nextPhase = Math.min(prev.currentPhase + 1, 5) as GamePhase;
 
       const isGameOver = prev.guesses.length >= 6;
-      return {
+
+      const newState = {
         ...prev,
         currentPhase: nextPhase,
         isGameOver,
       };
+
+      return newState;
     });
   }, []);
 
@@ -123,7 +139,7 @@ export function useGameState() {
 
   const changeCategory = useCallback(
     async (category: Category) => {
-      await startNewGame(category);
+      return await startNewGame(category);
     },
     [startNewGame]
   );

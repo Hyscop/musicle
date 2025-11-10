@@ -36,21 +36,21 @@ export default function ProgressBar({
   );
 
   return (
-    <div className="w-[140%] -ml-[20%] relative pt-10 pb-2">
+    <div className="w-full sm:w-[140%] sm:-ml-[20%] relative pt-10 pb-2 px-2 sm:px-0">
       <div
         className="absolute top-0 transition-all duration-300 flex flex-col items-center z-10"
         style={{
-          left: `calc(${positionPercentage}% + 2px)`,
+          left: `calc(${positionPercentage}%)`,
           transform: "translateX(-50%)",
         }}
       >
-        <span className="text-xs text-purple-300 font-semibold mb-0 bg-gray-900/95 px-3 py-1.5 rounded-full border border-purple-500/40 shadow-lg">
+        <span className="text-xs text-purple-300 font-semibold mb-0 bg-gray-900/95 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-purple-500/40 shadow-lg whitespace-nowrap">
           {formatDuration(currentPhaseDuration)}
         </span>
         <div className="text-purple-400 text-base leading-none">▼</div>
       </div>
 
-      <div className="relative mt-1 h-6 bg-transparent">
+      <div className="relative mt-1 h-5 sm:h-6 bg-transparent">
         <div className="absolute inset-0 flex gap-0.5">
           {PHASE_DURATIONS.map((duration, index) => {
             const adjustedDuration = adjustedDurations[index];

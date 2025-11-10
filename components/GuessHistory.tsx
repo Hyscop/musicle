@@ -32,7 +32,20 @@ export default function GuessHistory({ guesses }: GuessHistoryProps) {
             }
           `}
         >
-          {guess ? guess.songTitle : ""}
+          {guess ? (
+            guess.isSkipped ? (
+              guess.songTitle
+            ) : guess.artist ? (
+              <div className="flex flex-col">
+                <span className="font-semibold">{guess.songTitle}</span>
+                <span className="text-sm opacity-80">{guess.artist}</span>
+              </div>
+            ) : (
+              guess.songTitle
+            )
+          ) : (
+            ""
+          )}
         </div>
       ))}
     </div>

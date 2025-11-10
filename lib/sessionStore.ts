@@ -1,8 +1,12 @@
 import { GameSession } from "@/types";
 import { SESSION_EXPIRY } from "./constants";
 
-// In-Memo store //TODO redis ekle
-const sessions = new Map<string, GameSession>();
+const globalForSessions = globalThis as unknown as {
+  sessions: Map<string, GameSession> | undefined;
+};
+
+const sessions = globalForSessions.sessions ?? new Map<string, GameSession>();
+globalForSessions.sessions = sessions;
 
 export function setSession(gameId: string, session: GameSession): void {
   sessions.set(gameId, session);

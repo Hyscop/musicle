@@ -13,7 +13,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { gameId, guess, phase } = body;
 
+    console.log("🐛 DEBUG - Received guess request:");
+    console.log("  Game ID:", gameId);
+    console.log("  Guess:", guess);
+    console.log("  Phase:", phase);
+
     if (!gameId || !guess || phase === undefined) {
+      console.log("❌ Missing required fields");
       return NextResponse.json(
         {
           error: "Missing required fields",
@@ -27,6 +33,7 @@ export async function POST(request: NextRequest) {
     const session = getSession(gameId);
 
     if (!session) {
+      console.log("❌ Session not found for gameId:", gameId);
       return NextResponse.json(
         { error: "Game not found or expired" },
         { status: 404 }
@@ -35,7 +42,16 @@ export async function POST(request: NextRequest) {
 
     const normalizedGuess = normalizeString(guess);
 
+    // DEBUG: Log comparison details
+    console.log("🐛 DEBUG - Guess comparison:");
+    console.log("  Original guess:", guess);
+    console.log("  Normalized guess:", normalizedGuess);
+    console.log("  Answer (stored):", session.answer);
+    console.log("  Song title:", session.songData?.title);
+    console.log("  Artist:", session.songData?.artist);
+
     const correct = isCorrectGuess(normalizedGuess, session.answer);
+    console.log("  Result:", correct ? "✅ CORRECT" : "❌ WRONG");
 
     const updatedGuesses = [
       ...session.guesses,
@@ -43,6 +59,7 @@ export async function POST(request: NextRequest) {
         songTitle: guess,
         phase: phase as GamePhase,
         isCorrect: correct,
+        isSkipped: false,
       },
     ];
 
@@ -59,7 +76,7 @@ export async function POST(request: NextRequest) {
     };
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Error process,ng guess:", error);
+    console.error("Error processing guess:", error);
     return NextResponse.json(
       { error: "Failed to process guess" },
       { status: 500 }

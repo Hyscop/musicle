@@ -4,7 +4,7 @@ export interface Song {
   title: string;
   artist: string;
   category: "all" | "rock" | "hiphop";
-  soundcloudUrl: string;
+  youtubeId: string;
 }
 
 // Game phase  (in seconds)
@@ -19,11 +19,13 @@ export interface GameState {
   isGameOver: boolean;
   hasWon: boolean;
   selectedCategory: Category;
-  soundcloudUrl: string | null;
+  youtubeId: string | null;
+  completedCategories: Category[];
 }
 
 export interface Guess {
   songTitle: string;
+  artist?: string;
   phase: GamePhase;
   isCorrect: boolean;
   isSkipped: boolean;
@@ -35,7 +37,7 @@ export type Category = "all" | "rock" | "hiphop";
 // API response
 export interface NewGameResponse {
   gameId: string;
-  soundcloudUrl: string;
+  youtubeId: string;
   category: Category;
 }
 
@@ -47,7 +49,7 @@ export interface GuessResponse {
 export interface RevealResponse {
   title: string;
   artist: string;
-  soundcloudUrl: string;
+  youtubeId: string;
   guesses: Guess[];
   phase: GamePhase;
 }

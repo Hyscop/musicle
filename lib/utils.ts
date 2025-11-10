@@ -11,11 +11,11 @@ export function generateGameId(): string {
 
 export function normalizeString(str: string): string {
   return str
-    .toLowerCase()
+    .toLocaleLowerCase("tr-TR") // Use Turkish locale for proper İ → i conversion
     .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s]/g, "");
+    .replace(/\s+/g, " ") // Normalize multiple spaces to single space
+    .replace(/[!?.,;:()\[\]{}"'`]/g, "") // Remove punctuation but keep letters
+    .trim();
 }
 
 export function isMatch(str1: string, str2: string): boolean {

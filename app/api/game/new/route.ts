@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getRandomSong } from "@/lib/songDatabase";
+import { fetchPlaylistSongs } from "@/lib/youtube";
 import { setSession } from "@/lib/sessionStore";
 import { generateGameId, normalizeString } from "@/lib/utils";
 import { Category, NewGameResponse } from "@/types";
@@ -17,9 +17,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid category" }, { status: 400 });
     }
 
-    const song = getRandomSong(category);
+    // Fetch songs from YouTube playlist
+    const songs = await fetchPlaylistSongs(category);
+
+    if (songs.length === 0) {
+      return NextResponse.json(
+        { error: "No songs available for this category" },
+        { status: 404 }
+      );
+    }
+
+    // Pick a random song
+    const song = songs[Math.floor(Math.random() * songs.length)];
 
     const gameId = generateGameId();
+
+    // DEBUG: Log what we're storing
+    console.log("🐛 DEBUG - New game created:");
+    console.log("  Game ID:", gameId);
+    console.log("  Song title:", song.title);
+    console.log("  Artist:", song.artist);
+    console.log("  Normalized answer:", normalizeString(song.title));
+    console.log("  YouTube ID:", song.youtubeId);
 
     setSession(gameId, {
       answer: normalizeString(song.title),
@@ -32,13 +51,24 @@ export async function GET(request: NextRequest) {
 
     const response: NewGameResponse = {
       gameId,
-      soundcloudUrl: song.soundcloudUrl,
+      youtubeId: song.youtubeId,
       category,
     };
 
-    return NextResponse.json(response);
+    // DEBUG: Add song info to response for debugging
+    console.log("🐛 DEBUG - Sending response with song info");
+    const debugResponse = {
+      ...response,
+      _debug: {
+        title: song.title,
+        artist: song.artist,
+        normalizedAnswer: normalizeString(song.title),
+      },
+    };
+
+    return NextResponse.json(debugResponse);
   } catch (error) {
-    console.error("Error crating new game:", error);
+    console.error("Error creating new game:", error);
     return NextResponse.json(
       {
         error: "Failed to create game",

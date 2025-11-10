@@ -1,138 +1,119 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { GamePhase } from "@/types";
 import { PHASE_DURATIONS } from "@/lib/constants";
 
-interface SoundCloudWidget {
-  bind: (event: string, callback: () => void) => void;
-  load: (url: string, options: Record<string, unknown>) => void;
-  play: () => void;
-  pause: () => void;
-  seekTo: (milliseconds: number) => void;
-}
-
-interface SoundCloudAPI {
-  Widget: {
-    (iframe: HTMLIFrameElement): SoundCloudWidget;
-    Events: {
-      READY: string;
-      PLAY: string;
-      PAUSE: string;
-    };
-  };
-}
-
 declare global {
   interface Window {
-    SC: SoundCloudAPI;
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
   }
 }
 
-export function useAudioPlayer(soundcloudUrl: string | null) {
-  const widgetRef = useRef<SoundCloudWidget | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const [isReady, setIsReady] = useState(false);
+export function useAudioPlayer(youtubeId: string | null) {
+  const playerRef = useRef<any>(null);
+  const iframeRef = useRef<HTMLDivElement | null>(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalPlayDuration, setTotalPlayDuration] = useState(0);
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const currentPhaseRef = useRef<GamePhase | null>(null);
-  const isFirstPlayOfPhaseRef = useRef(true);
-  const pausedPositionRef = useRef<number>(0);
   const playStartTimeRef = useRef<number>(0);
+  const pausedPositionRef = useRef<number>(0);
+  const currentPhaseRef = useRef<GamePhase>(0);
+  const isFirstPlayOfPhaseRef = useRef<boolean>(true);
 
   useEffect(() => {
-    const existingScript = document.querySelector(
-      'script[src="https://w.soundcloud.com/player/api.js"]'
-    );
+    if (typeof window === "undefined") return;
+    if (window.YT && window.YT.Player) return;
+    if (document.querySelector('script[src*="youtube.com/iframe_api"]')) return;
 
-    if (existingScript) {
-      setTimeout(() => setIsReady(true), 0);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://w.soundcloud.com/player/api.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    script.onload = () => {
-      setIsReady(true);
-    };
-
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    };
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
   }, []);
 
   useEffect(() => {
-    if (isReady && iframeRef.current && soundcloudUrl && window.SC) {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-        progressIntervalRef.current = null;
-      }
+    if (!youtubeId || typeof window === "undefined") return;
 
-      currentPhaseRef.current = null;
-      isFirstPlayOfPhaseRef.current = true;
-      pausedPositionRef.current = 0;
+    // Reset all state when youtubeId changes (async to avoid cascading renders)
+    const resetTimer = setTimeout(() => {
+      setIsPlaying(false);
+      setProgress(0);
+      setElapsedTime(0);
+      setTotalPlayDuration(0);
+    }, 0);
 
-      setTimeout(() => {
-        setProgress(0);
-        setElapsedTime(0);
-        setTotalPlayDuration(0);
-        setIsPlaying(false);
-      }, 0);
+    pausedPositionRef.current = 0;
+    isFirstPlayOfPhaseRef.current = true;
+    currentPhaseRef.current = 0;
 
-      const widget = window.SC.Widget(iframeRef.current);
-      widgetRef.current = widget;
-
-      widget.bind(window.SC.Widget.Events.READY, () => {});
-
-      widget.bind(window.SC.Widget.Events.PLAY, () => {
-        setIsPlaying(true);
-      });
-
-      widget.bind(window.SC.Widget.Events.PAUSE, () => {
-        setIsPlaying(false);
-      });
-
-      return () => {
-        if (timerRef.current) {
-          clearTimeout(timerRef.current);
-        }
-        if (progressIntervalRef.current) {
-          clearInterval(progressIntervalRef.current);
-        }
-      };
-    }
-  }, [isReady, soundcloudUrl]);
-  const playPhase = useCallback(
-    (phase: GamePhase) => {
-      if (!widgetRef.current) {
+    const initPlayer = () => {
+      if (!window.YT || !window.YT.Player) {
+        setTimeout(initPlayer, 100);
         return;
       }
 
-      const widget = widgetRef.current;
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch (e) {
+          console.error("Error:", e);
+        }
+      }
+
+      playerRef.current = new window.YT.Player("youtube-player-container", {
+        height: "0",
+        width: "0",
+        videoId: youtubeId,
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0,
+        },
+        events: {
+          onReady: () => {},
+          onStateChange: (event: any) => {
+            if (event.data === 1) setIsPlaying(true);
+            else if (event.data === 2) setIsPlaying(false);
+          },
+        },
+      });
+    };
+
+    initPlayer();
+
+    return () => {
+      clearTimeout(resetTimer);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (progressIntervalRef.current)
+        clearInterval(progressIntervalRef.current);
+    };
+  }, [youtubeId]);
+
+  const playPhase = useCallback(
+    (phase: GamePhase) => {
+      if (!playerRef.current) return;
+      const player = playerRef.current;
 
       if (pausedPositionRef.current > 0 && currentPhaseRef.current === phase) {
         const remainingTime = totalPlayDuration - pausedPositionRef.current;
-
-        widget.seekTo(pausedPositionRef.current * 1000);
-        widget.play();
+        player.seekTo(pausedPositionRef.current, true);
+        player.playVideo();
         setIsPlaying(true);
 
-        if (progressIntervalRef.current) {
+        if (progressIntervalRef.current)
           clearInterval(progressIntervalRef.current);
-        }
 
         playStartTimeRef.current = Date.now();
         const pausedAt = pausedPositionRef.current;
@@ -141,26 +122,18 @@ export function useAudioPlayer(soundcloudUrl: string | null) {
           const elapsed =
             pausedAt + (Date.now() - playStartTimeRef.current) / 1000;
           setElapsedTime(elapsed);
-          const progressPercent = Math.min(
-            (elapsed / totalPlayDuration) * 100,
-            100
-          );
-          setProgress(progressPercent);
+          setProgress(Math.min((elapsed / totalPlayDuration) * 100, 100));
         }, 50);
 
-        if (timerRef.current) {
-          clearTimeout(timerRef.current);
-        }
+        if (timerRef.current) clearTimeout(timerRef.current);
 
         timerRef.current = setTimeout(() => {
-          widget.pause();
+          player.pauseVideo();
           setIsPlaying(false);
           setProgress(100);
           pausedPositionRef.current = 0;
-
-          if (progressIntervalRef.current) {
+          if (progressIntervalRef.current)
             clearInterval(progressIntervalRef.current);
-          }
         }, remainingTime * 1000);
 
         return;
@@ -174,13 +147,11 @@ export function useAudioPlayer(soundcloudUrl: string | null) {
 
       let startPosition = 0;
       let playDuration: number;
-      let actualStartTime = 0;
 
       if (isFirstPlayOfPhaseRef.current) {
         if (phase === 0) {
           startPosition = 0;
           playDuration = PHASE_DURATIONS[0];
-          actualStartTime = 0;
         } else {
           const previousTotal = PHASE_DURATIONS.slice(0, phase).reduce(
             (sum, d) => sum + d,
@@ -188,7 +159,6 @@ export function useAudioPlayer(soundcloudUrl: string | null) {
           );
           startPosition = previousTotal;
           playDuration = PHASE_DURATIONS[phase];
-          actualStartTime = previousTotal;
         }
         isFirstPlayOfPhaseRef.current = false;
       } else {
@@ -197,63 +167,57 @@ export function useAudioPlayer(soundcloudUrl: string | null) {
           (sum, d) => sum + d,
           0
         );
-        actualStartTime = 0;
       }
 
       setTotalPlayDuration(playDuration);
       pausedPositionRef.current = 0;
 
-      widget.seekTo(startPosition * 1000);
-      widget.play();
+      player.seekTo(startPosition, true);
+      player.playVideo();
       setIsPlaying(true);
-
       setProgress(0);
 
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-
-      if (progressIntervalRef.current) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (progressIntervalRef.current)
         clearInterval(progressIntervalRef.current);
-      }
 
       playStartTimeRef.current = Date.now();
       progressIntervalRef.current = setInterval(() => {
         const elapsed = (Date.now() - playStartTimeRef.current) / 1000;
-        const currentAbsoluteTime = actualStartTime + elapsed;
-        setElapsedTime(currentAbsoluteTime);
-        const progressPercent = Math.min((elapsed / playDuration) * 100, 100);
-        setProgress(progressPercent);
+        const totalElapsed = startPosition + elapsed;
+        setElapsedTime(totalElapsed);
+        setProgress(Math.min((elapsed / playDuration) * 100, 100));
       }, 50);
 
       timerRef.current = setTimeout(() => {
-        widget.pause();
+        player.pauseVideo();
         setIsPlaying(false);
         setProgress(100);
         pausedPositionRef.current = 0;
-
-        if (progressIntervalRef.current) {
+        if (progressIntervalRef.current)
           clearInterval(progressIntervalRef.current);
-        }
       }, playDuration * 1000);
     },
     [totalPlayDuration]
   );
 
   const stopPlaying = useCallback(() => {
-    if (!widgetRef.current) return;
-
+    if (!playerRef.current) return;
     pausedPositionRef.current = elapsedTime;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
 
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+    try {
+      if (
+        playerRef.current &&
+        typeof playerRef.current.pauseVideo === "function"
+      ) {
+        playerRef.current.pauseVideo();
+      }
+    } catch (error) {
+      console.error("Error pausing player:", error);
     }
 
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-    }
-
-    widgetRef.current.pause();
     setIsPlaying(false);
   }, [elapsedTime]);
 
@@ -263,14 +227,13 @@ export function useAudioPlayer(soundcloudUrl: string | null) {
   }, []);
 
   const playFull = useCallback(() => {
-    if (!widgetRef.current) return;
-
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-
-    widgetRef.current.seekTo(0);
-    widgetRef.current.play();
+    if (!playerRef.current) return;
+    const player = playerRef.current;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    player.seekTo(0, true);
+    player.playVideo();
+    setIsPlaying(true);
   }, []);
 
   return {
