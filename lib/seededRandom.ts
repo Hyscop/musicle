@@ -12,25 +12,25 @@ export function seededRandom(seed: number): () => number {
 }
 
 /**
- * Get today's seed based on date (YYYYMMDD format)
- * Same date = same seed = same songs for everyone
+ * Get today's seed based on UTC date (YYYYMMDD format)
+ * Same UTC date = same seed = same songs for everyone worldwide
  */
 export function getTodaySeed(): number {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(now.getUTCDate()).padStart(2, "0");
   const dateString = `${year}${month}${day}`;
   return parseInt(dateString);
 }
 
 /**
- * Get seed for a specific date (for testing or future dates)
+ * Get seed for a specific date using UTC (for testing or future dates)
  */
 export function getSeedForDate(date: Date): number {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
   const dateString = `${year}${month}${day}`;
   return parseInt(dateString);
 }
