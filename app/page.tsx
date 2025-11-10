@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Montserrat } from "next/font/google";
+import Link from "next/link";
 import CategorySelector from "@/components/CategorySelector";
 import ProgressBar from "@/components/ProgressBar";
 import GuessInput from "@/components/GuessInput";
@@ -178,7 +179,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="mt-16 pt-8 border-t border-gray-800/50">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-400 text-sm">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-400 text-sm mb-4">
             <a
               href="https://www.hyscop.com"
               target="_blank"
@@ -212,7 +213,24 @@ export default function Home() {
               GitHub
             </a>
           </div>
-          <div className="text-center mt-4 text-gray-500 text-xs">
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-gray-500 text-xs mb-4">
+            <Link
+              href="/privacy"
+              className="hover:text-purple-400 transition-colors duration-200"
+            >
+              Gizlilik Politikası
+            </Link>
+            <span className="hidden sm:inline text-gray-600">•</span>
+            <Link
+              href="/terms"
+              className="hover:text-purple-400 transition-colors duration-200"
+            >
+              Kullanım Koşulları
+            </Link>
+          </div>
+
+          <div className="text-center text-gray-500 text-xs">
             Last edited: 10.11.2025
           </div>
         </footer>
