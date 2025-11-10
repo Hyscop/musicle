@@ -45,10 +45,15 @@ export default function ResultModal({
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
+      // Stop the video when modal closes
+      if (modalIframeRef.current) {
+        modalIframeRef.current.src = "";
+      }
     }
     return () => {
       document.body.style.overflow = "unset";
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const currentIndex = CATEGORY_SEQUENCE.indexOf(currentCategory);

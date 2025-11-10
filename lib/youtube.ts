@@ -1,4 +1,5 @@
 import { Song, Category } from "@/types";
+import { getTodaySeed } from "./seededRandom";
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const PLAYLIST_IDS = {
@@ -34,16 +35,32 @@ const cacheTimestamps: Record<Category, number> = {
   rock: 0,
   hiphop: 0,
 };
-const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+const cacheSeedDates: Record<Category, number> = {
+  all: 0,
+  rock: 0,
+  hiphop: 0,
+};
 
 export async function fetchPlaylistSongs(category: Category): Promise<Song[]> {
-  // Return cached songs if still valid for this category
+  const todaySeed = getTodaySeed();
+
+  // Check if cache is from today (same seed = same day)
   if (
     songsCacheByCategory[category] &&
-    Date.now() - cacheTimestamps[category] < CACHE_DURATION
+    cacheSeedDates[category] === todaySeed
   ) {
-    console.log(`Using cached songs for category: ${category}`);
+    console.log(
+      `Using cached songs for category: ${category} (today's playlist)`
+    );
     return songsCacheByCategory[category]!;
+  }
+
+  // If cache is from different day, clear it
+  if (cacheSeedDates[category] !== todaySeed) {
+    console.log(
+      `Cache expired for ${category}, fetching fresh playlist for new day`
+    );
+    songsCacheByCategory[category] = null;
   }
 
   if (!YOUTUBE_API_KEY) {
@@ -106,10 +123,13 @@ export async function fetchPlaylistSongs(category: Category): Promise<Song[]> {
       nextPageToken = data.nextPageToken;
     } while (nextPageToken);
 
-    // Cache songs for this category
+    // Cache songs for this category with today's seed
     songsCacheByCategory[category] = songs;
     cacheTimestamps[category] = Date.now();
-    console.log(`Cached ${songs.length} songs for category: ${category}`);
+    cacheSeedDates[category] = todaySeed;
+    console.log(
+      `Cached ${songs.length} songs for category: ${category} (seed: ${todaySeed})`
+    );
 
     return songs;
   } catch (error) {
@@ -125,4 +145,7 @@ export function clearSongsCache() {
   cacheTimestamps.all = 0;
   cacheTimestamps.rock = 0;
   cacheTimestamps.hiphop = 0;
+  cacheSeedDates.all = 0;
+  cacheSeedDates.rock = 0;
+  cacheSeedDates.hiphop = 0;
 }

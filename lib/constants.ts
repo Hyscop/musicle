@@ -1,6 +1,6 @@
-export const PHASE_DURATIONS = [0.1, 0.5, 2, 4, 8, 15] as const;
+export const PHASE_DURATIONS = [0.5, 2, 4, 8, 15] as const;
 
-export const MAX_PHASES = 6;
+export const MAX_PHASES = 5;
 
 export const CATEGORY_NAMES = {
   all: "Tümü",

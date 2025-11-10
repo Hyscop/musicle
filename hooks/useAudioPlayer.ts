@@ -15,11 +15,13 @@ declare global {
 export function useAudioPlayer(youtubeId: string | null) {
   const playerRef = useRef<any>(null);
   const iframeRef = useRef<HTMLDivElement | null>(null);
+  const currentVideoIdRef = useRef<string | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalPlayDuration, setTotalPlayDuration] = useState(0);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -27,6 +29,7 @@ export function useAudioPlayer(youtubeId: string | null) {
   const pausedPositionRef = useRef<number>(0);
   const currentPhaseRef = useRef<GamePhase>(0);
   const isFirstPlayOfPhaseRef = useRef<boolean>(true);
+  const isTransitioningRef = useRef<boolean>(false); // Prevent rapid clicks
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -42,17 +45,59 @@ export function useAudioPlayer(youtubeId: string | null) {
   useEffect(() => {
     if (!youtubeId || typeof window === "undefined") return;
 
+    // If video changed, just load the new video instead of destroying player
+    if (playerRef.current && currentVideoIdRef.current !== youtubeId) {
+      currentVideoIdRef.current = youtubeId;
+
+      const loadNewVideo = () => {
+        try {
+          const player = playerRef.current;
+          player.loadVideoById(youtubeId);
+
+          // Preload the new video
+          player.mute();
+          player.playVideo();
+          setTimeout(() => {
+            player.pauseVideo();
+            player.seekTo(0);
+            player.unMute();
+            player.setVolume(100);
+            setIsPlayerReady(true);
+          }, 500);
+        } catch (e) {
+          console.error("Error loading new video:", e);
+          setIsPlayerReady(false);
+        }
+
+        // Reset state for new video
+        setIsPlaying(false);
+        setProgress(0);
+        setElapsedTime(0);
+        setTotalPlayDuration(0);
+        pausedPositionRef.current = 0;
+        isFirstPlayOfPhaseRef.current = true;
+        currentPhaseRef.current = 0;
+      };
+
+      setTimeout(loadNewVideo, 0);
+      return; // Don't recreate player
+    }
+
+    // Initial player creation
+    if (playerRef.current) return; // Player already exists
 
     const resetTimer = setTimeout(() => {
       setIsPlaying(false);
       setProgress(0);
       setElapsedTime(0);
       setTotalPlayDuration(0);
+      setIsPlayerReady(false);
     }, 0);
 
     pausedPositionRef.current = 0;
     isFirstPlayOfPhaseRef.current = true;
     currentPhaseRef.current = 0;
+    currentVideoIdRef.current = youtubeId;
 
     const initPlayer = () => {
       if (!window.YT || !window.YT.Player) {
@@ -64,41 +109,60 @@ export function useAudioPlayer(youtubeId: string | null) {
         try {
           playerRef.current.destroy();
         } catch (e) {
-          console.error("Error:", e);
+          console.error("Error destroying player:", e);
         }
       }
 
-      playerRef.current = new window.YT.Player("youtube-player-container", {
-        height: "0",
-        width: "0",
-        videoId: youtubeId,
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-        },
-        events: {
-          onReady: (event: any) => {
-           
-            const player = event.target;
-            player.mute();
-            player.playVideo();
-            setTimeout(() => {
-              player.pauseVideo();
-              player.seekTo(0);
-              player.unMute();
-            }, 500); 
+      try {
+        playerRef.current = new window.YT.Player("youtube-player-container", {
+          height: "0",
+          width: "0",
+          videoId: youtubeId,
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            modestbranding: 1,
+            rel: 0,
+            showinfo: 0,
+            playsinline: 1,
+            enablejsapi: 1,
+            hd: 0, // Lower quality for faster loading
+            vq: "small", // Force low quality
           },
-          onStateChange: (event: any) => {
-            if (event.data === 1) setIsPlaying(true);
-            else if (event.data === 2) setIsPlaying(false);
+          events: {
+            onReady: (event: any) => {
+              const player = event.target;
+              try {
+                // Preload video immediately
+                player.mute();
+                player.playVideo();
+                setTimeout(() => {
+                  player.pauseVideo();
+                  player.seekTo(0);
+                  player.unMute();
+                  player.setVolume(100);
+                  setIsPlayerReady(true);
+                }, 300);
+              } catch (e) {
+                console.error("Player init error:", e);
+                setIsPlayerReady(false);
+              }
+            },
+            onStateChange: (event: any) => {
+              if (event.data === 1) setIsPlaying(true);
+              else if (event.data === 2) setIsPlaying(false);
+            },
+            onError: (event: any) => {
+              console.error("YouTube player error:", event.data);
+              setIsPlayerReady(false);
+            },
           },
-        },
-      });
+        });
+      } catch (e) {
+        console.error("Error creating player:", e);
+      }
     };
 
     initPlayer();
@@ -114,7 +178,29 @@ export function useAudioPlayer(youtubeId: string | null) {
   const playPhase = useCallback(
     (phase: GamePhase) => {
       if (!playerRef.current) return;
+
+      // Prevent rapid clicks
+      if (isTransitioningRef.current) {
+        console.warn("Player is transitioning, please wait");
+        return;
+      }
+
       const player = playerRef.current;
+
+      // Check if player is ready
+      try {
+        if (typeof player.getPlayerState !== "function") {
+          return;
+        }
+      } catch (e) {
+        console.error("Player check failed:", e);
+        return;
+      }
+
+      isTransitioningRef.current = true;
+      setTimeout(() => {
+        isTransitioningRef.current = false;
+      }, 300); // 300ms debounce
 
       if (pausedPositionRef.current > 0 && currentPhaseRef.current === phase) {
         const remainingTime = totalPlayDuration - pausedPositionRef.current;
@@ -211,6 +297,17 @@ export function useAudioPlayer(youtubeId: string | null) {
 
   const stopPlaying = useCallback(() => {
     if (!playerRef.current) return;
+
+    // Prevent rapid clicks
+    if (isTransitioningRef.current) {
+      return;
+    }
+
+    isTransitioningRef.current = true;
+    setTimeout(() => {
+      isTransitioningRef.current = false;
+    }, 300);
+
     pausedPositionRef.current = elapsedTime;
     if (timerRef.current) clearTimeout(timerRef.current);
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
@@ -250,6 +347,7 @@ export function useAudioPlayer(youtubeId: string | null) {
     progress,
     elapsedTime,
     totalPlayDuration,
+    isPlayerReady,
     playPhase,
     stopPlaying,
     playFull,

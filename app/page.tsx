@@ -26,7 +26,6 @@ export default function Home() {
     changeCategory,
     markModalAsSeen,
     reopenModal,
-    setRevealedSongData,
     clearAllData,
   } = useGameState();
 
@@ -36,6 +35,7 @@ export default function Home() {
     progress,
     elapsedTime,
     totalPlayDuration,
+    isPlayerReady,
     playPhase,
     stopPlaying,
     resetForNewPhase,
@@ -55,16 +55,6 @@ export default function Home() {
   useEffect(() => {
     changeCategory("all");
   }, [changeCategory]);
-
-  useEffect(() => {
-    if (gameState.isGameOver && gameState.gameId) {
-      fetch(`/api/game/reveal?gameId=${gameState.gameId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setRevealedSongData({ title: data.title, artist: data.artist });
-        });
-    }
-  }, [gameState.isGameOver, gameState.gameId, setRevealedSongData]);
 
   const handlePlay = () => {
     if (isPlaying) {
@@ -108,6 +98,7 @@ export default function Home() {
 
   const handleCloseModal = () => {
     markModalAsSeen();
+    stopPlaying();
   };
 
   const handleOpenStats = () => {
@@ -155,7 +146,7 @@ export default function Home() {
             isPlaying={isPlaying}
             onPlay={handlePlay}
             iframeRef={iframeRef}
-            disabled={false}
+            disabled={!isPlayerReady}
             isGameOver={gameState.isGameOver}
             onShowStats={handleOpenStats}
           />

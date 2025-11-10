@@ -8,7 +8,7 @@ export interface Song {
 }
 
 // Game phase  (in seconds)
-export type GamePhase = 0 | 1 | 2 | 3 | 4 | 5;
+export type GamePhase = 0 | 1 | 2 | 3 | 4;
 
 // Game state
 export interface GameState {
@@ -21,7 +21,7 @@ export interface GameState {
   selectedCategory: Category;
   youtubeId: string | null;
   completedCategories: Category[];
-  hasSeenModal?: boolean; 
+  hasSeenModal?: boolean;
   revealedSong?: { title: string; artist: string } | null;
 }
 
@@ -46,6 +46,10 @@ export interface NewGameResponse {
 export interface GuessResponse {
   correct: boolean;
   gameOver: boolean;
+  revealedSong?: {
+    title: string;
+    artist: string;
+  };
 }
 
 export interface RevealResponse {

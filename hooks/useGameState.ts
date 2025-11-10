@@ -7,6 +7,7 @@ import {
   saveDailyGameState,
   loadDailyGameState,
 } from "@/lib/dailyStorage";
+import { MAX_PHASES } from "@/lib/constants";
 
 const initialState: GameState = {
   gameId: null,
@@ -45,7 +46,6 @@ export function useGameState() {
     }
   }, []);
 
-
   const loadGameState = useCallback(
     (category: Category): GameState | null => {
       if (typeof window !== "undefined") {
@@ -70,7 +70,6 @@ export function useGameState() {
         const response = await fetch(`/api/game/new?category=${category}`);
         const data = await response.json();
 
-      
         const newState: GameState = {
           gameId: data.gameId,
           currentPhase: 0 as GamePhase,
@@ -81,10 +80,9 @@ export function useGameState() {
           selectedCategory: category,
           youtubeId: data.youtubeId,
           completedCategories: gameState.completedCategories,
-          hasSeenModal: false, 
+          hasSeenModal: false,
         };
 
-       
         if (typeof window !== "undefined") {
           const stateToSave = {
             gameId: newState.gameId,
@@ -99,7 +97,6 @@ export function useGameState() {
           saveDailyGameState(category, stateToSave);
         }
 
-       
         setGameState(newState);
 
         return data;
@@ -144,6 +141,7 @@ export function useGameState() {
             guesses: [...prev.guesses, newGuess],
             isGameOver: data.gameOver,
             hasWon: data.correct,
+            ...(data.revealedSong && { revealedSong: data.revealedSong }),
           };
           saveGameState(newState);
           return newState;
@@ -158,7 +156,7 @@ export function useGameState() {
     [gameState, saveGameState]
   );
 
-  const skipPhase = useCallback(() => {
+  const skipPhase = useCallback(async () => {
     setGameState((prev) => {
       const skippedGuess: Guess = {
         songTitle: "Geçildi",
@@ -167,10 +165,13 @@ export function useGameState() {
         isSkipped: true,
       };
 
-      const nextPhase = Math.min(prev.currentPhase + 1, 5) as GamePhase;
+      const nextPhase = Math.min(
+        prev.currentPhase + 1,
+        MAX_PHASES - 1
+      ) as GamePhase;
       const newGuesses = [...prev.guesses, skippedGuess];
 
-      const isGameOver = newGuesses.length >= 6;
+      const isGameOver = newGuesses.length >= MAX_PHASES;
 
       const newState = {
         ...prev,
@@ -183,13 +184,47 @@ export function useGameState() {
       saveGameState(newState);
       return newState;
     });
-  }, [saveGameState]);
+
+    // If game is over after skip, fetch the revealed song
+    const currentGuessCount = gameState.guesses.length + 1;
+    if (currentGuessCount >= MAX_PHASES && gameState.gameId) {
+      try {
+        const response = await fetch("/api/game/guess", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            gameId: gameState.gameId,
+            guess: "___SKIP___", // Special marker for skip
+            phase: gameState.currentPhase,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.revealedSong) {
+          setGameState((prev) => {
+            const newState = {
+              ...prev,
+              revealedSong: data.revealedSong,
+            };
+            saveGameState(newState);
+            return newState;
+          });
+        }
+      } catch (error) {
+        console.error("Failed to get revealed song:", error);
+      }
+    }
+  }, [gameState, saveGameState]);
 
   const advancePhase = useCallback(() => {
     setGameState((prev) => {
-      const nextPhase = Math.min(prev.currentPhase + 1, 5) as GamePhase;
+      const nextPhase = Math.min(
+        prev.currentPhase + 1,
+        MAX_PHASES - 1
+      ) as GamePhase;
 
-      const isGameOver = prev.guesses.length >= 6;
+      const isGameOver = prev.guesses.length >= MAX_PHASES;
 
       const newState = {
         ...prev,
@@ -208,15 +243,12 @@ export function useGameState() {
 
   const changeCategory = useCallback(
     async (category: Category) => {
-     
       const savedState = loadGameState(category);
 
       if (savedState && savedState.gameId) {
-       
         setGameState(savedState);
         return { gameId: savedState.gameId, youtubeId: savedState.youtubeId };
       } else {
-        
         return await startNewGame(category);
       }
     },
@@ -225,7 +257,7 @@ export function useGameState() {
 
   const resetGame = useCallback(() => {
     setGameState(initialState);
-    
+
     if (typeof window !== "undefined") {
       localStorage.removeItem("musicle_state_all");
       localStorage.removeItem("musicle_state_rock");
@@ -234,9 +266,7 @@ export function useGameState() {
   }, []);
 
   const clearAllData = useCallback(() => {
-    
     if (typeof window !== "undefined") {
-     
       const keys = Object.keys(localStorage);
       keys.forEach((key) => {
         if (key.startsWith("musicle_")) {
@@ -245,7 +275,7 @@ export function useGameState() {
       });
     }
     setGameState(initialState);
-  
+
     if (typeof window !== "undefined") {
       window.location.reload();
     }
@@ -273,20 +303,6 @@ export function useGameState() {
     });
   }, [saveGameState]);
 
-  const setRevealedSongData = useCallback(
-    (songData: { title: string; artist: string } | null) => {
-      setGameState((prev) => {
-        const newState = {
-          ...prev,
-          revealedSong: songData,
-        };
-        saveGameState(newState);
-        return newState;
-      });
-    },
-    [saveGameState]
-  );
-
   return {
     gameState,
     startNewGame,
@@ -298,7 +314,6 @@ export function useGameState() {
     resetGame,
     markModalAsSeen,
     reopenModal,
-    setRevealedSongData,
     clearAllData,
   };
 }

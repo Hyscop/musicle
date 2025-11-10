@@ -7,6 +7,7 @@ import { getSession, updateSession } from "@/lib/sessionStore";
 import { isCorrectGuess } from "@/lib/fuzzySearch";
 import { normalizeString } from "@/lib/utils";
 import { GuessResponse, GamePhase } from "@/types";
+import { MAX_PHASES } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,11 +52,17 @@ export async function POST(request: NextRequest) {
       phase: phase as GamePhase,
     });
 
-    const gameOver = correct || phase >= 5;
+    const gameOver = correct || phase >= MAX_PHASES - 1;
 
     const response: GuessResponse = {
       correct,
       gameOver,
+      ...(gameOver && {
+        revealedSong: {
+          title: session.songData.title,
+          artist: session.songData.artist,
+        },
+      }),
     };
     return NextResponse.json(response);
   } catch (error) {
