@@ -5,17 +5,31 @@ import { fetchPlaylistSongs } from "./youtube";
 const globalForSongCache = globalThis as unknown as {
   allSongsCache: Song[] | undefined;
   cacheInitialized: boolean | undefined;
+  cacheTimestamp: number | undefined;
 };
 
 let allSongsCache = globalForSongCache.allSongsCache ?? [];
 let cacheInitialized = globalForSongCache.cacheInitialized ?? false;
+let cacheTimestamp = globalForSongCache.cacheTimestamp ?? 0;
+
+// Cache expires after 24 hours
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
+
+function isCacheExpired(): boolean {
+  if (!cacheTimestamp) return true;
+  return Date.now() - cacheTimestamp > CACHE_DURATION;
+}
 
 export async function initializeSongDatabase() {
-  if (cacheInitialized) {
+  if (cacheInitialized && !isCacheExpired()) {
     console.log(
-      `🚀 Using cached song database with ${allSongsCache.length} songs`
+      `Using cached song database with ${allSongsCache.length} songs`
     );
     return;
+  }
+
+  if (isCacheExpired() && cacheInitialized) {
+    console.log(" Cache expired, refreshing song database...");
   }
 
   try {
@@ -39,13 +53,15 @@ export async function initializeSongDatabase() {
 
     allSongsCache = Array.from(songsMap.values());
     cacheInitialized = true;
+    cacheTimestamp = Date.now();
 
     // Persist to globalThis
     globalForSongCache.allSongsCache = allSongsCache;
     globalForSongCache.cacheInitialized = true;
+    globalForSongCache.cacheTimestamp = cacheTimestamp;
 
     console.log(
-      `✅ Song database initialized with ${allSongsCache.length} unique songs`
+      `Song database initialized with ${allSongsCache.length} unique songs`
     );
   } catch (error) {
     console.error("Failed to initialize song database:", error);

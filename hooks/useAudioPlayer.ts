@@ -150,7 +150,6 @@ export function useAudioPlayer(youtubeId: string | null) {
 
       if (isFirstPlayOfPhaseRef.current) {
         if (phase === 0) {
-          startPosition = 0;
           playDuration = PHASE_DURATIONS[0];
         } else {
           const previousTotal = PHASE_DURATIONS.slice(0, phase).reduce(
@@ -162,7 +161,6 @@ export function useAudioPlayer(youtubeId: string | null) {
         }
         isFirstPlayOfPhaseRef.current = false;
       } else {
-        startPosition = 0;
         playDuration = PHASE_DURATIONS.slice(0, phase + 1).reduce(
           (sum, d) => sum + d,
           0
@@ -172,7 +170,8 @@ export function useAudioPlayer(youtubeId: string | null) {
       setTotalPlayDuration(playDuration);
       pausedPositionRef.current = 0;
 
-      player.seekTo(startPosition, true);
+      // Add 3 seconds offset to YouTube playback position only
+      player.seekTo(startPosition + 3, true);
       player.playVideo();
       setIsPlaying(true);
       setProgress(0);
@@ -231,7 +230,7 @@ export function useAudioPlayer(youtubeId: string | null) {
     const player = playerRef.current;
     if (timerRef.current) clearTimeout(timerRef.current);
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    player.seekTo(0, true);
+    player.seekTo(3, true); // Start from 3 seconds
     player.playVideo();
     setIsPlaying(true);
   }, []);
